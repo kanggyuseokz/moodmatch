@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from utils.predict import predict_emotion
+from utils.recommend import recommend_by_emotion
 
 app = Flask(__name__)
 CORS(app)  # 모든 도메인에서의 요청 허용 (프론트엔드 개발 편의를 위해)
@@ -24,6 +25,15 @@ def predict_emotion_route():
 
 
 @app.route("/recommend-content", methods=["POST"])
+def recommend_content_route():
+    data = request.get_json()
+    if not data or "emotion" not in data:
+        return jsonify({"error": "No emotion provided"}), 400
+
+    emotion_label = data["emotion"]
+    recs = recommend_by_emotion(emotion_label, top_n=5)
+    return jsonify({"recommendations": recs}), 200
+
 def recommend_content_route():
     """
     (나중에 구현)  
