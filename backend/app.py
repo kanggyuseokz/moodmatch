@@ -1,69 +1,59 @@
+# backend/app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+
 from utils.predict import predict_emotion
-from utils.recommend import recommend_by_emotion
+from utils.recommend import recommend_movies_by_emotion
+
+# .env 파일에서 환경변수 로드
+load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # 모든 도메인에서의 요청 허용 (프론트엔드 개발 편의를 위해)
+CORS(app)  # 개발 중 모든 도메인 허용
 
-
-@app.route("/predict-emotion", methods=["POST"])
+@app.route("/api/predict-emotion", methods=["POST"])
 def predict_emotion_route():
     """
-    POST 요청으로 JSON 형식 {'text': '사용자 입력 텍스트'} 를 받는다.
-    텍스트가 없으면 400 에러 반환. 있으면 predict_emotion() 호출 후
-    {'emotion': 'positive' or 'negative'} 형태로 반환.
+    사용자 텍스트를 받아 감정을 예측합니다.
     """
     data = request.get_json()
-    if not data or "text" not in data:
-        return jsonify({"error": "No text provided"}), 400
+    if not data or "text" not in data or not data["text"].strip():
+        return jsonify({"error": "Text is required."}), 400
 
-    user_text = data["text"]
-    # 감정 예측 함수 호출
-    emotion_label = predict_emotion(user_text)
-    return jsonify({"emotion": emotion_label}), 200
+    try:
+        user_text = data["text"]
+        emotion_label = predict_emotion(user_text)
+        return jsonify({"emotion": emotion_label}), 200
+    except Exception as e:
+        # 모델 로딩 실패 등 서버 내부 오류 처리
+        print(f"Error in predict_emotion_route: {e}")
+        return jsonify({"error": "Could not process the request."}), 500
 
 
-@app.route("/recommend-content", methods=["POST"])
-def recommend_content_route():
-    data = request.get_json()
-    if not data or "emotion" not in data:
-        return jsonify({"error": "No emotion provided"}), 400
-
-    emotion_label = data["emotion"]
-    recs = recommend_by_emotion(emotion_label, top_n=5)
-    return jsonify({"recommendations": recs}), 200
-
+@app.route("/api/recommend-content", methods=["POST"])
 def recommend_content_route():
     """
-    (나중에 구현)  
-    POST 요청으로 {'emotion': 'positive' or 'negative'}를 받으면,
-    미리 정의한 감정→장르 매핑에 따라 추천 콘텐츠 리스트를 JSON으로 반환.
+    감정 라벨을 받아 영화를 추천합니다.
     """
     data = request.get_json()
     if not data or "emotion" not in data:
-        return jsonify({"error": "No emotion provided"}), 400
+        return jsonify({"error": "Emotion is required."}), 400
 
-    # TODO: 감정(emotion) 기반 콘텐츠 추천 로직 구현
-    emotion_label = data["emotion"]
-    # 예시: 더미 응답 (추후 실제 로직으로 교체)
-    recommendations = [
-        {
-            "title": "Sample Movie A",
-            "genre": ["Drama"],
-            "overview": "A heartfelt drama movie for you.",
-            "vote_average": 8.5
-        },
-        {
-            "title": "Sample Movie B",
-            "genre": ["Comedy"],
-            "overview": "A lighthearted comedy to lift your mood.",
-            "vote_average": 7.9
-        }
-    ]
-    return jsonify({"recommendations": recommendations}), 200
+    try:
+        emotion_label = data["emotion"]
+        recommendations = recommend_movies_by_emotion(emotion_label, top_n=10)
+        return jsonify({"recommendations": recommendations}), 200
+    except Exception as e:
+        # API 키 부재 등 서버 내부 오류 처리
+        print(f"Error in recommend_content_route: {e}")
+        return jsonify({"error": "Could not retrieve recommendations."}), 500
+
+@app.route("/api/health")
+def health_check():
+    """서비스 상태 확인용 엔드포인트"""
+    return "OK", 200
 
 
 if __name__ == "__main__":
-    # 개발 환경에서 5000 포트로 실행
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)

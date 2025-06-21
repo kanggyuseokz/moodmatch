@@ -1,77 +1,46 @@
-# backend/utils/recommend.py
-
+# backend/utils/predict.py
+import pickle
 import os
-import json
-import pandas as pd
 
-# ─── 1. 경로 설정 ─────────────────────────────────
-# 이 파일(utils/)의 상위 디렉토리인 backend/까지 찾아서
-# data 폴더 안의 tmdb_5000_movies.csv를 읽습니다.
+# --- 경로 설정 ---
+# 이 파일의 상위 디렉토리인 backend/ 를 기준으로 경로를 잡습니다.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_PATH = os.path.join(BASE_DIR, "data", "tmdb_5000_movies.csv")
+MODEL_PATH = os.path.join(BASE_DIR, "model", "emotion_model.pkl")
+VECTORIZER_PATH = os.path.join(BASE_DIR, "model", "tfidf_vectorizer.pkl")
 
-# ─── 2. 감정→장르 매핑 ────────────────────────────
-EMOTION_GENRE_MAP = {
-    "positive": ["Comedy", "Romance", "Family"],
-    "negative": ["Drama", "Music", "Healing"],
+# --- 모델 및 벡터라이저 로드 (앱 실행 시 1회) ---
+try:
+    with open(MODEL_PATH, "rb") as f:
+        emotion_model = pickle.load(f)
+
+    with open(VECTORIZER_PATH, "rb") as f:
+        tfidf_vectorizer = pickle.load(f)
+except FileNotFoundError:
+    emotion_model = None
+    tfidf_vectorizer = None
+    print("Warning: Model or Vectorizer file not found. Prediction will not work.")
+
+def predict_emotion(text: str) -> str:
+    """
+    입력 텍스트의 감정을 'positive' 또는 'negative'로 예측합니다.
+    (추후 모델이 세분화되면 'joy', 'sadness' 등으로 변경 가능)
+    """
+    if not emotion_model or not tfidf_vectorizer:
+        raise RuntimeError("Model is not loaded. Check model file paths.")
+
+    # 텍스트를 벡터로 변환
+    vectorized_text = tfidf_vectorizer.transform([text])
     
-}
-
-# ─── 3. CSV 로드 및 전처리 ─────────────────────────
-def load_movie_data(csv_path: str) -> pd.DataFrame:
-    """
-    TMDB CSV 파일을 읽어서,
-    genres 컬럼(JSON 문자열) → genre_list 컬럼(list of names)으로 변환한 DataFrame 반환
-    """
-    df = pd.read_csv(csv_path)
-    # genres 칼럼: '[{"id": 18, "name": "Drama"}, ...]' 형태의 문자열
-    df["genre_list"] = df["genres"].apply(
-        lambda s: [g["name"] for g in json.loads(s)] if pd.notna(s) else []
-    )
-    return df
-
-# 모듈 로드 시 한 번만 읽어놓습니다.
-movie_df = load_movie_data(DATA_PATH)
-
-
-# ─── 4. 추천 함수 ──────────────────────────────────
-def recommend_by_emotion(emotion: str, top_n: int = 5) -> list[dict]:
-    """
-    감정(emotion)에 대응하는 장르 리스트를 꺼내,
-    해당 장르 중 하나라도 포함된 영화를 vote_average 기준으로 정렬하여
-    상위 top_n개를 리스트로 반환합니다.
+    # 감정 예측 (0 또는 1)
+    prediction = emotion_model.predict(vectorized_text)[0]
     
-    반환 예시:
-    [
-      {
-        "title": "Movie A",
-        "genre_list": ["Drama","Romance"],
-        "overview": "...",
-        "vote_average": 8.5,
-        "release_date": "2019-05-01"
-      },
-      ...
-    ]
-    """
-    genres = EMOTION_GENRE_MAP.get(emotion, [])
-    if not genres:
-        return []
-
-    # 필터링: genre_list 중 하나라도 포함되는 영화들
-    mask = movie_df["genre_list"].apply(lambda gl: any(g in gl for g in genres))
-    candidates = movie_df[mask]
-
-    # 평점 순 정렬 후 상위 N개 선택
-    top = candidates.sort_values("vote_average", ascending=False).head(top_n)
-
-    # dict 리스트로 변환
-    results = []
-    for _, row in top.iterrows():
-        results.append({
-            "title": row["title"],
-            "genre_list": row["genre_list"],
-            "overview": row["overview"],
-            "vote_average": row["vote_average"],
-            "release_date": row.get("release_date", "")
-        })
-    return results
+    # 현재 모델은 positive/negative만 예측하므로, 임의로 세부 감정에 매핑합니다.
+    # 이 부분은 추후 고도화된 모델로 교체되어야 합니다.
+    if prediction == 1:
+        # positive -> 'joy', 'romance', 'touching', 'excitement' 중 랜덤 선택
+        import random
+        return random.choice(['joy', 'romance', 'touching', 'excitement'])
+    else:
+        # negative -> 'sadness', 'anger', 'fear' 중 랜덤 선택
+        import random
+        return random.choice(['sadness', 'anger', 'fear'])
