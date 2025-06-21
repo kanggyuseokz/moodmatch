@@ -1,21 +1,21 @@
-# backend/app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from dotenv import load_dotenv
-
 from utils.predict import predict_emotion
-from utils.recommend import recommend_movies_by_emotion
-
-# .env 파일에서 환경변수 로드
-load_dotenv()
+from utils.recommend import recommend_by_emotion
+import os
 
 app = Flask(__name__)
-CORS(app)  # 개발 중 모든 도메인 허용
+
+# 개발 환경에서는 모든 출처를 허용하고,
+# 실제 배포 시에는 특정 프론트엔드 주소만 허용하는 것이 안전합니다.
+# 예: CORS(app, resources={r"/api/*": {"origins": "http://your-frontend-domain.com"}})
+CORS(app)
 
 @app.route("/api/predict-emotion", methods=["POST"])
 def predict_emotion_route():
     """
-    사용자 텍스트를 받아 감정을 예측합니다.
+    POST 요청으로 JSON 형식 {'text': '사용자 입력 텍스트'} 를 받습니다.
+    텍스트가 없으면 400 에러를 반환합니다.
     """
     data = request.get_json()
     if not data or "text" not in data or not data["text"].strip():
@@ -26,34 +26,34 @@ def predict_emotion_route():
         emotion_label = predict_emotion(user_text)
         return jsonify({"emotion": emotion_label}), 200
     except Exception as e:
-        # 모델 로딩 실패 등 서버 내부 오류 처리
+        # 예측 함수에서 오류 발생 시 서버가 중단되지 않도록 처리
         print(f"Error in predict_emotion_route: {e}")
-        return jsonify({"error": "Could not process the request."}), 500
+        return jsonify({"error": "Could not process the emotion prediction."}), 500
 
 
 @app.route("/api/recommend-content", methods=["POST"])
 def recommend_content_route():
     """
-    감정 라벨을 받아 영화를 추천합니다.
+    POST 요청으로 {'emotion': '감정'}를 받으면,
+    해당 감정에 맞는 콘텐츠 리스트를 JSON으로 반환합니다.
     """
     data = request.get_json()
     if not data or "emotion" not in data:
-        return jsonify({"error": "Emotion is required."}), 400
+        return jsonify({"error": "No emotion provided"}), 400
 
     try:
         emotion_label = data["emotion"]
-        recommendations = recommend_movies_by_emotion(emotion_label, top_n=10)
-        return jsonify({"recommendations": recommendations}), 200
+        # 추천할 콘텐츠 개수 (기본값: 5개)
+        top_n = data.get("top_n", 5)
+        recs = recommend_by_emotion(emotion_label, top_n=top_n)
+        return jsonify({"recommendations": recs}), 200
     except Exception as e:
-        # API 키 부재 등 서버 내부 오류 처리
+        # 추천 함수에서 오류 발생 시 서버가 중단되지 않도록 처리
         print(f"Error in recommend_content_route: {e}")
         return jsonify({"error": "Could not retrieve recommendations."}), 500
 
-@app.route("/api/health")
-def health_check():
-    """서비스 상태 확인용 엔드포인트"""
-    return "OK", 200
-
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    # 환경 변수에서 포트 번호를 가져오고, 없으면 5000번을 기본값으로 사용
+    port = int(os.environ.get("PORT", 5000))
+    # debug=True는 개발 중에만 사용하고, 실제 서비스 시에는 False로 변경해야 합니다.
+    app.run(host="0.0.0.0", port=port, debug=True)
