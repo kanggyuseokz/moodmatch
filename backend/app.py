@@ -44,7 +44,7 @@ def recommend_content_route():
     try:
         emotion_label = data["emotion"]
         # 추천할 콘텐츠 개수 (기본값: 5개)
-        top_n = data.get("top_n", 5)
+        top_n = data.get("top_n", 20)
         recs = recommend_by_emotion(emotion_label, top_n=top_n)
         return jsonify({"recommendations": recs}), 200
     except Exception as e:
