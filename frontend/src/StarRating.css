@@ -1,0 +1,7 @@
+.star-rating-container {
+  color: #f5c518; /* 노란색 별 */
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}

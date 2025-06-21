@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
+import StarRating from './StarRating'
 
 // 백엔드 API 주소
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'http://localhost:5000/api';
 
 function App() {
   // --- State 정의 ---
@@ -85,9 +86,19 @@ function App() {
               <div key={movie.id} className="movie-card">
                 <img src={movie.poster_url} alt={`${movie.title} 포스터`} onError={(e) => { e.target.style.display = 'none'; }} />
                 <div className="movie-details">
-                  <h3>{movie.title}</h3>
-                  <p className="movie-meta">평점: {movie.vote_average} | 개봉: {movie.release_date}</p>
-                  <p className="movie-overview">{movie.overview}</p>
+                    <h3>{movie.title}</h3>
+                    <div className="movie-meta">
+                      {/* 첫 번째 줄: 별점과 평점 */}
+                      <div className="rating-line">
+                          <StarRating rating={movie.vote_average} />
+                          <span className="movie-rating-text">({movie.vote_average})</span>
+                      </div>
+                      {/* 두 번째 줄: 개봉일 */}
+                      <div className="release-date-line">
+                          {movie.release_date}
+                      </div>
+                    </div>
+                    <p className="movie-overview">{movie.overview}</p>
                 </div>
               </div>
             ))}

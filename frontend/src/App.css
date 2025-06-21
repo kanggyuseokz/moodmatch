@@ -130,17 +130,51 @@ body {
 
 .movie-details h3 {
   margin: 0 0 0.5rem 0;
+  align-items: center;
   font-size: 1.2rem;
-}
-
-.movie-meta {
-  font-size: 0.8rem;
-  color: #666;
-  margin-bottom: 0.5rem;
 }
 
 .movie-overview {
   font-size: 0.9rem;
-  line-height: 1.4;
-  flex-grow: 1; /* 남은 공간을 모두 차지하도록 */
+  line-height: 1.5; /* 줄 간격을 1.5로 설정 */
+  flex-grow: 1;
+
+  /* --- 아래 5줄을 추가합니다 --- */
+  overflow: hidden; /* 영역을 벗어나는 텍스트를 숨김 */
+  text-overflow: ellipsis; /* 말줄임표(...) 효과 */
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* 텍스트를 3줄로 제한 */
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.movie-meta {
+  /* 이 부분은 이제 각 줄의 간격을 위해 사용됩니다 */
+  display: flex;
+  flex-direction: column; /* 아이템들을 세로로 정렬 */
+  gap: 4px; /* 두 줄 사이의 간격 */
+  margin-bottom: 0.8rem;
+}
+
+.rating-line {
+  /* 첫 번째 줄 (별점, 평점)을 가로로 정렬 */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 별점과 평점 숫자 사이의 간격 */
+}
+
+.movie-rating-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.release-date-line {
+  /* 두 번째 줄 (개봉일) 스타일 */
+  font-size: 0.9rem;
+  align-items: center;
+  color: #888;
+  text-align: left; /* 텍스트 왼쪽 정렬 */
+}
+
+.separator {
+  color: #ccc;
 }
