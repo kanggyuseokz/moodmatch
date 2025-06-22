@@ -2,31 +2,43 @@
   "EMOTION_GENRE_MAP": {
     "joy": {
       "name_kr": "기쁨 / 유쾌함",
-      "genres": ["Comedy", "Animation", "Family", "Adventure", "Music"]
-    },
-    "romance": {
-      "name_kr": "사랑 / 설렘",
-      "genres": ["Romance", "Comedy", "Drama"]
-    },
-    "touching": {
-      "name_kr": "감동 / 따뜻함",
-      "genres": ["Drama", "Family", "Music"]
+      "genres": ["Comedy", "Animation", "Romance", "Family"]
     },
     "excitement": {
       "name_kr": "신남 / 짜릿함",
-      "genres": ["Action", "Adventure", "Science Fiction", "Fantasy"]
+      "genres": ["Action", "Adventure", "Thriller", "Music"]
+    },
+    "touching": {
+      "name_kr": "감동 / 따뜻함",
+      "genres": ["Drama", "Family", "Music", "Romance"]
+    },
+    "optimism": {
+      "name_kr": "희망 / 낙관",
+      "genres": ["Drama", "Adventure", "Family", "Science Fiction"]
+    },
+    "pride": {
+      "name_kr": "자부심 / 뿌듯함",
+      "genres": ["History", "War", "Drama", "Documentary"]
     },
     "sadness": {
-      "name_kr": "슬픔 / 우울함",
-      "genres": ["Drama", "War", "History"]
+      "name_kr": "슬픔 / 우울",
+      "genres": ["Drama", "War", "Romance"]
     },
     "anger": {
-      "name_kr": "분노 / 긴장감",
-      "genres": ["Action", "Thriller", "Crime", "War"]
+      "name_kr": "분노 / 좌절",
+      "genres": ["Action", "Crime", "Thriller", "War"]
     },
     "fear": {
-      "name_kr": "공포 / 불안함",
-      "genres": ["Horror", "Thriller", "Mystery"]
+      "name_kr": "공포 / 불안",
+      "genres": ["Horror", "Mystery", "Thriller"]
+    },
+    "loneliness": {
+      "name_kr": "외로움 / 고독",
+      "genres": ["Drama", "Science Fiction", "Romance", "Fantasy"]
+    },
+    "nostalgia": {
+      "name_kr": "그리움 / 향수",
+      "genres": ["Romance", "Drama", "Family", "History"]
     },
     "calm": {
       "name_kr": "평온 / 사색",
@@ -35,6 +47,10 @@
     "curiosity": {
       "name_kr": "호기심 / 지적 자극",
       "genres": ["Mystery", "Science Fiction", "Documentary"]
+    },
+    "inspiration": {
+      "name_kr": "영감 / 동기부여",
+      "genres": ["Drama", "History", "Documentary", "Family"]
     }
   },
   "TMDB_GENRE_NAME_TO_ID": {
