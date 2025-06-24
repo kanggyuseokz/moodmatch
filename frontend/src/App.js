@@ -7,28 +7,24 @@ import StarRating from './StarRating'
 const API_URL = 'http://localhost:5000/api';
 
 function App() {
-  // --- State 정의 ---
-  const [textInput, setTextInput] = useState(''); // 사용자가 입력한 텍스트
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태
-  const [error, setError] = useState(null); // 에러 메시지
-  const [emotion, setEmotion] = useState(null); // 분석된 감정
-  const [recommendations, setRecommendations] = useState([]); // 추천 영화 목록
+  const [textInput, setTextInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [emotion, setEmotion] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
 
-  // --- 이벤트 핸들러 ---
   const handleSubmit = async () => {
     if (!textInput.trim()) {
       setError('감정을 나타내는 텍스트를 입력해주세요.');
       return;
     }
 
-    // 초기화
     setIsLoading(true);
     setError(null);
     setEmotion(null);
     setRecommendations([]);
 
     try {
-      // 1. 감정 예측 API 호출
       const predictResponse = await axios.post(`${API_URL}/predict-emotion`, {
         text: textInput,
       });
@@ -36,7 +32,6 @@ function App() {
       const predictedEmotion = predictResponse.data.emotion;
       setEmotion(predictedEmotion);
 
-      // 2. 예측된 감정으로 추천 API 호출
       const recommendResponse = await axios.post(`${API_URL}/recommend-content`, {
         emotion: predictedEmotion,
       });
@@ -51,7 +46,26 @@ function App() {
     }
   };
 
-  // --- UI 렌더링 ---
+  // --- ❗️ 1. 엔터 키 처리를 위한 함수 추가 ---
+  const handleKeyDown = (e) => {
+    // Shift 키와 함께 엔터를 누르면 줄바꿈을 허용합니다.
+    if (e.key === 'Enter' && e.shiftKey) {
+      return;
+    }
+    
+    // 로딩 중일 때는 아무것도 하지 않습니다.
+    if (isLoading) {
+      e.preventDefault();
+      return;
+    }
+
+    // 엔터 키만 눌렸을 때
+    if (e.key === 'Enter') {
+      e.preventDefault(); // 텍스트창의 기본 엔터 동작(줄바꿈)을 막습니다.
+      handleSubmit();     // 버튼 클릭과 동일한 함수를 호출합니다.
+    }
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -61,9 +75,11 @@ function App() {
 
       <main className="content-wrapper">
         <div className="input-section">
+          {/* --- ❗️ 2. textarea에 onKeyDown 이벤트 연결 --- */}
           <textarea
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
+            onKeyDown={handleKeyDown} // 이 부분을 추가합니다.
             placeholder="예: 오늘 정말 신나는 하루였어! 하늘을 나는 기분이야."
             rows="4"
           />
@@ -86,19 +102,17 @@ function App() {
               <div key={movie.id} className="movie-card">
                 <img src={movie.poster_url} alt={`${movie.title} 포스터`} onError={(e) => { e.target.style.display = 'none'; }} />
                 <div className="movie-details">
-                    <h3>{movie.title}</h3>
-                    <div className="movie-meta">
-                      {/* 첫 번째 줄: 별점과 평점 */}
-                      <div className="rating-line">
-                          <StarRating rating={movie.vote_average} />
-                          <span className="movie-rating-text">({movie.vote_average})</span>
-                      </div>
-                      {/* 두 번째 줄: 개봉일 */}
-                      <div className="release-date-line">
-                          {movie.release_date}
-                      </div>
+                  <h3>{movie.title}</h3>
+                  <div className="movie-meta">
+                    <div className="rating-line">
+                      <StarRating rating={movie.vote_average} />
+                      <span className="movie-rating-text">({movie.vote_average})</span>
                     </div>
-                    <p className="movie-overview">{movie.overview}</p>
+                    <div className="release-date-line">
+                      {movie.release_date}
+                    </div>
+                  </div>
+                  <p className="movie-overview">{movie.overview}</p>
                 </div>
               </div>
             ))}
