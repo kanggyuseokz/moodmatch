@@ -80,3 +80,72 @@
 
 ## 📂 프로젝트 구조
 ```
+moodmatch/
+├─ backend/
+│ ├─ model/
+│ │ ├─ emotion_model.pkl # 훈련된 감정 분석 모델
+│ │ └─ tfidf_vectorizer.pkl # TF-IDF 벡터라이저
+│ ├─ utils/
+│ │ ├─ predict.py # 감정 예측 로직
+│ │ └─ recommend.py # 영화 추천 로직
+│ ├─ app.py # Flask 애플리케이션 진입점
+│ ├─ config.json # 감정 → 장르 매핑 설정
+│ ├─ requirements.txt # Python 의존성 목록
+│ └─ .env # 환경 변수 (TMDB API KEY)
+├─ frontend/
+│ ├─ src/
+│ │ ├─ App.js # 메인 React 컴포넌트
+│ │ ├─ StarRating.js # 별점 시각화 컴포넌트
+│ │ ├─ App.css
+│ │ ├─ StarRating.css
+│ │ └─ index.js
+│ └─ package.json # Node.js 의존성
+```
+
+---
+
+## 🚀 설치 및 실행
+
+### Backend
+
+1. **폴더 이동 & 가상환경 생성**
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate      # Windows: .\venv\Scripts\activate
+   ```
+2. 의존성 설치
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. 환경 변수 설정
+   backend/.env 파일을 만들고:
+   ```env
+   TMDB_API_KEY="여기에_발급받은_TMDB_API_키"
+   ```
+4. 서버 실행
+   ```bash
+   python app.py
+   ```
+| 🚀 http://localhost:5000 에서 백엔드가 동작
+---
+### Frontend
+
+1. 폴더 이동
+   ```bash
+   cd frontend
+   ```
+2. 의존성 설치
+   ```bash
+   npm install
+   ```
+3. 개발 서버 실행
+   ```bash
+   npm start
+   ```
+---
+## 📝 API 엔드포인트
+| 메서드  | 경로                       | 요청 Body                                  | 설명                       |
+| ---- | ------------------------ | ---------------------------------------- | ------------------------ |
+| POST | `/api/predict-emotion`   | `{ "text": "사용자 입력 텍스트" }`               | 감정(Positive/Negative) 예측 |
+| POST | `/api/recommend-content` | `{ "emotion": "Positive", "top_n": 20 }` | 감정 기반 영화 추천 (기본 top 20)  |
