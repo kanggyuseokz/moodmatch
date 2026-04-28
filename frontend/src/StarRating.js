@@ -3,7 +3,7 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import './StarRating.css'; // 별점 스타일을 위한 CSS 파일
 
 const StarRating = ({ rating }) => {
-  // TMDB 평점(0~10)을 5점 만점으로 변환
+  if (rating == null || isNaN(rating)) return null;
   const ratingOutOf5 = rating / 2;
 
   // 5개의 별을 렌더링할 배열을 만듭니다.

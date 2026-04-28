@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
-import StarRating from './StarRating'
+import StarRating from './StarRating';
 
-// 백엔드 API 주소
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+const EMOTION_LABEL_KR = {
+  joy:       '기쁨 / 유쾌함',
+  sadness:   '슬픔 / 우울',
+  anger:     '분노 / 좌절',
+  fear:      '공포 / 불안',
+  love:      '사랑 / 설렘',
+  surprise:  '놀람 / 반전',
+};
 
 function App() {
   const [textInput, setTextInput] = useState('');
@@ -92,10 +100,14 @@ function App() {
 
         {emotion && (
           <div className="result-section">
-            <h2>분석된 감정: <span>{emotion}</span></h2>
+            <h2>분석된 감정: <span>{EMOTION_LABEL_KR[emotion] || emotion}</span></h2>
           </div>
         )}
-        
+
+        {emotion && recommendations.length === 0 && !isLoading && (
+          <p className="no-results-message">해당 감정에 맞는 영화를 찾지 못했습니다.</p>
+        )}
+
         {recommendations.length > 0 && (
           <div className="recommendation-grid">
             {recommendations.map((movie) => (
