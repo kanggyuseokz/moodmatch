@@ -24,6 +24,7 @@
    - [백엔드](#backend)
    - [프론트엔드](#frontend)
 6. [📝 API 엔드포인트](#-api-엔드포인트)
+7. [🔧 개선 방안](#-개선-방안)
 
 ---
 
@@ -162,3 +163,73 @@ moodmatch/
 | ------ | -------------------------- | ---------------------------------------------- | ------------------------------------------------- |
 | POST   | `/api/predict-emotion`     | `{ "text": "I feel so happy today" }`          | 감정 예측 (joy / sadness / anger / fear / love / surprise) |
 | POST   | `/api/recommend-content`   | `{ "emotion": "joy", "top_n": 10 }`            | 감정 기반 영화 추천 (기본 top 10)                 |
+
+---
+
+## 🔧 개선 방안
+
+### 1. 한국어 입력 미지원 (핵심 문제)
+
+현재 모델은 **영어 데이터셋**(`train.txt`)으로만 학습되어 한국어 입력 시 정확도가 크게 떨어집니다.
+
+- **단기**: UI에 "영어로 입력해주세요" 안내 문구 추가
+- **장기**: 한국어 사전학습 모델로 교체
+  - [`klue/roberta-base`](https://huggingface.co/klue/roberta-base) — 한국어 감정 분류에 적합한 Hugging Face 모델
+  - 또는 입력 텍스트를 영어로 자동 번역 후 기존 모델에 전달 (Google Translate API / `deep-translator` 라이브러리)
+
+### 2. 추천 결과 고정 문제
+
+같은 감정을 반복 요청하면 항상 동일한 영화 목록이 반환됩니다.  
+`recommend.py`에서 TMDB `page=1`만 고정으로 호출하기 때문입니다.
+
+```python
+# 현재: 항상 1페이지
+'page': 1
+
+# 개선: 여러 페이지 중 랜덤 선택
+import random
+'page': random.randint(1, 5)
+```
+
+### 3. 반복 요청 캐싱 없음
+
+같은 감정을 여러 번 요청해도 매번 TMDB API를 새로 호출합니다.  
+`Flask-Caching`으로 감정별 결과를 일정 시간 캐싱하면 응답 속도와 API 할당량 절약이 가능합니다.
+
+```bash
+pip install Flask-Caching
+```
+
+```python
+from flask_caching import Cache
+cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
+
+@cache.memoize(300)
+def recommend_by_emotion(emotion, top_n): ...
+```
+
+### 4. 예측 신뢰도 미제공
+
+현재 가장 높은 확률의 감정 하나만 반환합니다.  
+`predict_proba()`를 활용하면 각 감정의 확률을 함께 반환해 신뢰도가 낮을 때 사용자에게 알릴 수 있습니다.
+
+```python
+# predict.py
+proba = emotion_model.predict_proba(vectorized_text)[0]
+confidence = round(float(proba.max()), 3)
+return predicted_label, confidence
+```
+
+### 5. API 보안
+
+| 항목 | 현재 | 개선 |
+|------|------|------|
+| CORS | 전체 허용 (`CORS(app)`) | 배포 시 프론트엔드 도메인만 허용 |
+| Rate Limiting | 없음 | `Flask-Limiter`로 IP당 요청 수 제한 |
+| 입력 길이 | 제한 없음 | 최대 500자 제한 (`len(text) > 500`이면 400 반환) |
+
+### 6. 프론트엔드 UX
+
+- **로딩 스켈레톤**: 응답 대기 중 "분석 중..." 텍스트 대신 카드 형태의 스켈레톤 UI 표시
+- **영화 상세 링크**: 각 카드에 `https://www.themoviedb.org/movie/{id}` 링크 추가 (movie.id는 이미 API 응답에 포함)
+- **모바일 대응**: 현재 `minmax(220px, 1fr)` 그리드가 좁은 화면에서 1열로 축소될 때 레이아웃 깨짐 — `padding` 및 `textarea` 너비 조정 필요
