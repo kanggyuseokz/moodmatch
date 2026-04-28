@@ -22,7 +22,7 @@ def predict_emotion_route():
         return jsonify({"error": "Text is required."}), 400
 
     try:
-        user_text = data["text"]
+        user_text = data["text"].strip()
         emotion_label = predict_emotion(user_text)
         return jsonify({"emotion": emotion_label}), 200
     except Exception as e:
@@ -43,8 +43,7 @@ def recommend_content_route():
 
     try:
         emotion_label = data["emotion"]
-        # 추천할 콘텐츠 개수 (기본값: 5개)
-        top_n = data.get("top_n", 20)
+        top_n = data.get("top_n", 10)
         recs = recommend_by_emotion(emotion_label, top_n=top_n)
         return jsonify({"recommendations": recs}), 200
     except Exception as e:
@@ -55,5 +54,5 @@ def recommend_content_route():
 if __name__ == "__main__":
     # 환경 변수에서 포트 번호를 가져오고, 없으면 5000번을 기본값으로 사용
     port = int(os.environ.get("PORT", 5000))
-    # debug=True는 개발 중에만 사용하고, 실제 서비스 시에는 False로 변경해야 합니다.
-    app.run(host="0.0.0.0", port=port, debug=True)
+    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug)

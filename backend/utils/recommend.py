@@ -61,18 +61,18 @@ def recommend_by_emotion(emotion: str, top_n: int = 10) -> list:
     params = {
         'api_key': TMDB_API_KEY,
         'language': 'ko-KR',
-        'sort_by': 'popularity.desc',  # 인기순으로 정렬
+        'sort_by': 'popularity.desc',
         'include_adult': False,
         'include_video': False,
-        'with_genres': ",".join(genre_ids),  # 장르 ID들을 쉼표로 연결
-        'vote_count.gte': 100,  # 최소 투표 수가 100개 이상인 영화만 필터링
+        'with_genres': "|".join(genre_ids),  # "|" = OR 조건 (AND인 "," 보다 결과가 훨씬 많음)
+        'vote_count.gte': 100,
         'page': 1
     }
 
     # 4. API 호출 및 예외 처리
     try:
-        response = requests.get(discover_url, params=params)
-        response.raise_for_status()  # 200 OK 상태 코드가 아닐 경우 예외 발생
+        response = requests.get(discover_url, params=params, timeout=10)
+        response.raise_for_status()
         data = response.json()
     except requests.exceptions.RequestException as e:
         print(f"API request failed: {e}")

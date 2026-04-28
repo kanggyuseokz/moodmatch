@@ -25,7 +25,7 @@ def predict_emotion(text: str) -> str:
     """
     입력 텍스트의 감정을 'joy', 'sadness' 등 여러 감정 중 하나로 예측합니다.
     """
-    if not all([emotion_model, tfidf_vectorizer, id_to_label]):
+    if emotion_model is None or tfidf_vectorizer is None or id_to_label is None:
         raise RuntimeError("Model or related files are not loaded.")
 
     # 1. 텍스트 벡터화

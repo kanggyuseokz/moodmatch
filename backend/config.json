@@ -51,6 +51,14 @@
     "inspiration": {
       "name_kr": "영감 / 동기부여",
       "genres": ["Drama", "History", "Documentary", "Family"]
+    },
+    "love": {
+      "name_kr": "사랑 / 설렘",
+      "genres": ["Romance", "Drama", "Comedy"]
+    },
+    "surprise": {
+      "name_kr": "놀람 / 반전",
+      "genres": ["Comedy", "Adventure", "Mystery", "Thriller"]
     }
   },
   "TMDB_GENRE_NAME_TO_ID": {
