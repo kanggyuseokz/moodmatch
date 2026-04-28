@@ -429,3 +429,10 @@ sketch
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,flask,node,react,python
+
+# Unused / legacy files
+backend/model/emotion_model.pkl
+backend/model/tfidf_vectorizer.pkl
+backend/train_emotion_model.py
+backend/data/IMDB Dataset.csv
+frontend/src/logo.svg
